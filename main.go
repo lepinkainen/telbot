@@ -15,12 +15,14 @@ func configChange(e fsnotify.Event) {
 	log.Infof("Config file changed:", e.Name)
 }
 
-func say(bot *tgbotapi.BotAPI, update tgbotapi.Update, message string) {
-	msg := tgbotapi.NewMessage(update.Message.Chat.ID, message)
-	bot.Send(msg)
+type Handler struct {
+	bot    *tgbotapi.BotAPI
+	update tgbotapi.Update
 }
 
 func main() {
+
+	var handler Handler
 
 	viper.SetEnvPrefix("TELBOT")
 	viper.BindEnv("KEY")
@@ -54,20 +56,24 @@ func main() {
 		return
 	}
 
+	handler.bot = bot
+
 	for update := range updates {
 		if update.Message == nil {
 			continue
 		}
 
+		handler.update = update
+
 		log.Infof("[%s] %s", update.Message.From.UserName, update.Message.Text)
 
 		switch update.Message.Text {
 		case "hello":
-			say(bot, update, "well, hello there")
+			handler.Say("well, hello there")
 		case "listdir":
-			listdir(bot, update)
+			handler.listdir()
 		default:
-			say(bot, update, update.Message.Text)
+			handler.Reply(update.Message.Text)
 		}
 	}
 }

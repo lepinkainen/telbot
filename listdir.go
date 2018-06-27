@@ -6,15 +6,19 @@ import (
 
 	log "github.com/sirupsen/logrus"
 	"github.com/spf13/viper"
-	"gopkg.in/telegram-bot-api.v4"
 )
 
-func listdir(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
+// List directory given in dirname config variable
+func (h Handler) listdir() {
+
 	var files []string
+
 	fileinfo, err := ioutil.ReadDir(viper.GetString("dirname"))
+
 	if err != nil {
 		log.Errorf("Error in listdir: %v", err)
 	}
+
 	for _, file := range fileinfo {
 		if strings.HasPrefix(file.Name(), ".") {
 			continue
@@ -22,5 +26,5 @@ func listdir(bot *tgbotapi.BotAPI, update tgbotapi.Update) {
 		files = append(files, file.Name())
 	}
 
-	say(bot, update, strings.Join(files, "\n"))
+	h.Say(strings.Join(files, "\n"))
 }
